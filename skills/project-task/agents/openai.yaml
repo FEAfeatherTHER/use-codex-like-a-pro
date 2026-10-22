@@ -1,0 +1,3 @@
+interface:
+  display_name: "Project Task"
+  short_description: "将设计转为独立任务，自动维护实施、交接、验收报告和长期事实"
