@@ -1,0 +1,48 @@
+model = "gpt-6.1-sol"
+model_reasoning_effort = "high"
+personality = "pragmatic"
+web_search = "cached"
+hide_agent_reasoning = true
+approval_policy = "on-request"
+sandbox_mode = "danger-full-access"
+approvals_reviewer = "user"
+plan_mode_reasoning_effort = "high"
+
+[features]
+hooks = true
+multi_agent = true
+shell_snapshot = true
+fast_mode = true
+
+[features.context_management] 
+experimental_mode = true
+
+[marketplaces.openai-bundled]
+source_type = "local"
+source = "/mnt/workspace/jingchong/.codex/.tmp/bundled-marketplaces/openai-bundled"
+
+[marketplaces.grill-me]
+source_type = "git"
+source = "https://github.com/joshuawheelock/grill-me.git"
+
+[plugins."sites@openai-bundled"]
+enabled = true
+
+[plugins."visualize@openai-bundled"]
+enabled = true
+
+[plugins."grill-me@grill-me"]
+enabled = true
+
+[plugins."superpowers@openai-api-curated"]
+enabled = true
+
+[tui]
+screen_reader_detection_done = true
+
+[tui.model_availability_nux]
+gpt-6-astra = 4
+"gpt-6.1-sol" = 4
+
+[notice]
+hide_rate_limit_model_nudge = true
