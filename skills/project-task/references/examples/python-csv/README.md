@@ -8,10 +8,25 @@
 | --- | --- | --- |
 | 首次任务 | 最后一行；设计主对话 | [任务](01-initial/tasks.md) |
 | 需求变更 | 最新时刻；实施对话 | [任务](02-change/tasks.md) |
-| 交接恢复 | 要求不变；原对话暂停，等待接管 | [任务](03-handoff/tasks.md)、[交接](03-handoff/handoff.md) |
-| 完成验收 | 最新时刻；续接对话完成 | [任务](04-complete/tasks.md)、[已接续记录](04-complete/handoff.md)、[完成报告](04-complete/report.md) |
+| 交接恢复 | 要求不变；原对话暂停，等待接管 | [任务](03-handoff/tasks.md)、[交接](03-handoff/handoff.md)、[验收记录](03-handoff/evaluation.md) |
+| 完成验收 | 最新时刻；续接对话完成 | [任务](04-complete/tasks.md)、[已接续记录](04-complete/handoff.md)、[完成报告](04-complete/report.md)、[验收记录](04-complete/evaluation.md) |
 
-[演示验证记录](evidence.md)列出用例与各阶段模拟结果。代码中的 `src/importer.py`、`tests/test_importer.py` 和 `samples/orders.csv` 均是虚构项目位置，不是本仓库文件。
+代码中的 `src/importer.py`、`tests/test_importer.py` 和 `samples/orders.csv` 均是虚构项目位置，不是本仓库文件。阶段记录只保留恢复所需状态，具体方法与结果统一写入 evaluation.md，完成报告只说明成果，不另存过程附件。
+
+## 验收用例
+
+以下是最新要求的教学用例定义，不是真实测试代码或运行结果；实际项目的正式测试应保留在测试目录。
+
+| 用例 | 条件 | 最新要求下的期望 |
+| --- | --- | --- |
+| T1 | 同一 ID，较旧记录在文件后面 | 保留较新时刻，不盲目覆盖 |
+| T2 | 同一 ID，10:00+08:00 与 02:00Z | 同一时刻，保留最后出现的一行 |
+| T3 | 空 order_id | 跳过并计入跳过数量 |
+| T4 | 没有重复 ID | 内容及列顺序不变 |
+| T5 | 只有表头 | 输出只有表头，统计为零 |
+| T6 | 混合示例文件 | 行内容、输出列和统计符合 T1—T5，输入文件内容不变 |
+
+演示前提：非空 ID 的 updated_at 均为带时区的有效时间，异常时间处理不属于此任务。
 
 ## 两次调用
 
@@ -20,7 +35,7 @@ $project-task 准备 csv-import-dedup：根据当前已确认方案建立任务
 $project-task 执行 .docs/csv-import-dedup
 ```
 
-第二次在独立实施对话中调用。Skill 明确读取 [任务规则](../../../assets/project/.docs/AGENTS.md)，完成后读取 [知识规则](../../../assets/project/.docs/knowledge/AGENTS.md)，自动生成任务报告并更新事实和索引。下面的阶段目录只是这段过程的教学快照。
+第二次在独立实施对话中调用。Skill 明确读取 [任务规则](../../../assets/project/.docs/AGENTS.md)，完成后读取 [知识规则](../../../assets/project/.docs/knowledge/AGENTS.md)，首次实际验证时维护验收记录，完成后自动生成成果报告并更新事实和索引。下面的阶段目录只是这段过程的教学快照。
 
 ## 主对话产生变化时
 
@@ -28,7 +43,7 @@ $project-task 执行 .docs/csv-import-dedup
 
 ## 新对话如何恢复
 
-只读第三阶段的任务、交接和必要证据即可知道当前要求、文件位置、失败用例与下一步；不需要读第一、二阶段。接续时仍须查验真实文件，因为交接可能已过时。
+读取第三阶段的任务、交接、验收记录和必要用例定义即可知道当前要求、文件位置、失败用例与下一步；不需要读第一、二阶段。接续时仍须查验真实文件，因为交接可能已过时。
 
 ## 完成后的项目索引示意
 
