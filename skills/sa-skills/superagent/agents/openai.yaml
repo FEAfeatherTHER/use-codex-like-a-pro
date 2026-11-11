@@ -1,0 +1,7 @@
+interface:
+  display_name: "Superagent"
+  short_description: "Route a large coding task across nested Codex subagents"
+  default_prompt: "Use $superagent to plan, dispatch, and verify this task."
+
+policy:
+  allow_implicit_invocation: false

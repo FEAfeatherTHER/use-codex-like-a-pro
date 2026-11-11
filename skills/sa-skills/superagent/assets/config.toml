@@ -1,0 +1,13 @@
+[models]
+# "inherit" means: do not pass model/reasoning_effort; the child uses the
+# parent's current model and effort. Only works with fork_turns = "none".
+worker = "inherit"
+explorer = "gpt-6-luna"
+verifier = "inherit"
+
+[limits]
+max_active_subagents = 3
+max_depth = 3
+time_budget_min = 30
+extension_min = 30
+max_verifications = 3
