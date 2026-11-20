@@ -176,13 +176,18 @@
 
 ## 8. 模型路由（Q15=c）
 
-用项目级 `.superagent/config.toml` 定义；orchestrator 在 intake 读，缺省用默认值：
+用项目级 `.superagent/config.toml` 定义；orchestrator 在创建子代理时读取。首次初始化使用 skill 的 `assets/config.toml`，以下是本仓库的模板值。
 
 ```toml
 [models]
 worker = "inherit"        # 跟随 orchestrator 当前模型
 explorer = "gpt-6-luna"   # 便宜、快，只做只读探索
 verifier = "inherit"      # 验收也用强模型
+
+[reasoning_effort]
+worker = "inherit"
+explorer = "inherit"
+verifier = "inherit"
 
 [limits]
 max_active_subagents = 3
@@ -192,15 +197,9 @@ extension_min = 30
 max_verifications = 3
 ```
 
-**`inherit` 不是 Codex 的关键字，是本 skill 配置里的约定**：它表示 spawn 子 agent 时**不传** `model` 和 `reasoning_effort`，让子 agent 直接使用父 agent 当前的模型和 reasoning effort。所以：
+子代理调用固定使用 `fork_turns="none"`。从 `[models]` 读取角色的 `model`，从 `[reasoning_effort]` 读取同一角色的 `reasoning_effort`。某项缺省或为 `inherit` 时仅省略该项。比如模型为 `inherit`、强度为 `high` 时，仍显式传入 `reasoning_effort="high"`。
 
-- 根 thread 开在 `gpt-6-astra`，`worker = "inherit"` 的 worker 就是 `gpt-6-astra`。
-- 想显式指定最强模型，可以写 `worker = "gpt-6.1-sol"`；你账号的模型列表里有 `gpt-6.1-sol`、`gpt-6-astra`、`gpt-6.1-terra`、`gpt-6-sol`、`gpt-6-luna` 等。
-- 只有 `fork_turns=none` 允许覆盖模型/effort；`all` 不允许。
-- 模型不可用或 spawn 失败：回退 `inherit`，在 `STATE.md` 记录。
-- 配置是可选覆盖；没有这个文件时全部继承。
-
-推荐默认：实现 worker 和 verifier 都用 `inherit`（跟着根 thread 的最强模型），只有 explorer 用便宜的 `gpt-6-luna`。如果想把 worker 固定到某个模型，再把 `inherit` 换成具体名字。
+工具拒绝某项设置时，报告请求值和原始错误。若能确定被拒的参数，只省略该参数并重试一次；成功后把实际采用的参数和继承项记入 `STATE.md` 的任务状态。详见 [superagent 协议](superagent/references/protocol.md#failure-and-fallback)。
 
 ## 9. 技能包结构（提案）
 

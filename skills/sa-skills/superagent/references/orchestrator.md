@@ -22,7 +22,7 @@ If you catch yourself opening a product file to answer a question, stop. Either 
 
 ## Intake
 
-1. If `.superagent/` is missing, create it with `.superagent/.gitignore` (`*`), `STATE.md`, `MEMORY.md`, and `config.toml`. Then read `.superagent/config.toml`, `STATE.md`, and `MEMORY.md`.
+1. If `.superagent/` is missing, create it with `.superagent/.gitignore` (`*`), `STATE.md`, `MEMORY.md`, and `config.toml` from `assets/config.toml`. Then read `.superagent/config.toml`, `STATE.md`, and `MEMORY.md`.
 2. Restate the outcome, acceptance criteria, and non-goals in the user's words. If the acceptance criteria are missing or contradictory, ask one concrete question with a recommended default before planning. This is the only case where you wait before dispatch.
 3. Record the baseline in `STATE.md`: `git rev-parse HEAD` and `git status --porcelain`.
 4. Decide whether the task is large enough for this skill. A single-file change should be done normally; if the user invoked the skill anyway, say so once and proceed with one worker only if they confirm.
@@ -70,17 +70,19 @@ Do not add implementation steps, architecture, file-by-file plans, or tests the 
 
 ## Dispatch
 
-Spawn with:
+For example, when the project config sets the worker model to `gpt-6.2-astra` and effort to `high`:
 
 ```
 spawn_agent(
   task_name="t1",
   fork_turns="none",
+  model="gpt-6.2-astra",
+  reasoning_effort="high",
   message="You are worker t1. Read `.superagent/tasks/t1/brief.md` first, then `<skill>/references/worker.md` and `<skill>/references/protocol.md`. Your parent is /root. Your write set is in the brief. Message /root only for BLOCKED or SCOPE. Write notes.md as you work and report.md before your final answer."
 )
 ```
 
-- Use the model from `config.toml` (`worker`, `explorer`, `verifier`); `inherit` means omit the model fields.
+- For every spawn, including exploration and verification, read the selected role from `[models]` and `[reasoning_effort]` in `.superagent/config.toml`. Omit the corresponding argument independently for a missing entry or `inherit`. For a rejected setting, follow "Failure and fallback" in `protocol.md`.
 - Never use `fork_turns="all"`.
 - Keep at most three subagents active. Count with `list_agents`; queue the rest. If `close_agent` is unavailable, completed agents release their slot; do not busy-loop.
 - Give each worker its parent's canonical path so it can message upward.

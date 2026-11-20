@@ -88,23 +88,14 @@ Workers read this file. Only the orchestrator writes it, using "Facts for MEMORY
 
 ## config.toml
 
-Defaults when the file is absent:
+Initialize a missing project config from [assets/config.toml](../assets/config.toml). Read the project config when building each `spawn_agent` call, including nested workers. Use role `worker` for implementation (including subworkers), `explorer` for read-only exploration, and `verifier` for independent verification.
 
-```toml
-[models]
-worker = "inherit"
-explorer = "gpt-6-luna"
-verifier = "inherit"
+| Project setting | `spawn_agent` argument |
+| --- | --- |
+| `[models]` entry for the role | `model` |
+| `[reasoning_effort]` entry for the role | `reasoning_effort` |
 
-[limits]
-max_active_subagents = 3
-max_depth = 3
-time_budget_min = 30
-extension_min = 30
-max_verifications = 3
-```
-
-`inherit` is this skill's convention, not a Codex keyword: do not pass `model` or `reasoning_effort`; the child uses the parent's current model. Only `fork_turns="none"` allows overrides. If a configured model fails to spawn, retry with `inherit` and record it in `STATE.md`.
+Always pass `fork_turns="none"`. For each setting independently, pass the configured value explicitly. If the role's entry or its table is missing, or if the entry is `"inherit"`, omit only that argument. For example, an inherited model and explicit effort of `"high"` means pass `reasoning_effort="high"` without a `model` argument. These settings apply to `spawn_agent` only.
 
 ## brief.md
 
@@ -274,7 +265,7 @@ If the verifier fails, the orchestrator sends the evidence to the owning worker 
 ## Failure and fallback
 
 - `spawn_agent` fails on the slot limit: queue; do not loop. If `close_agent` is unavailable, wait for a completion and retry once.
-- `spawn_agent` fails on a model: retry with `inherit`; record it.
+- If `spawn_agent` rejects a configured model or reasoning effort, report the role, requested values, and exact tool error to the user. If the error identifies the rejected argument, retry once with that argument omitted (`inherit`), keeping the other argument as configured. Record the error and the settings used by a successful retry in `STATE.md` as task status, identifying any omitted argument as inherited. Report an ambiguous rejection or a failed retry with the exact error.
 - A worker is silent past its budget: ask for a concrete progress report; grant one extension only if there is real progress; otherwise interrupt, close, and re-dispatch once or report.
 - A worker reports `FAILED`: read the report, re-dispatch once with the failure evidence, then report.
 - Approval/tool errors: report the exact error to the user; do not retry blindly.

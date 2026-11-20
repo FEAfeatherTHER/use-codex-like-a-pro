@@ -85,7 +85,7 @@ You may spawn subworkers only if:
 - the subworker's write set is a subset of your write set;
 - depth stays within the configured limit (default 3).
 
-Use `spawn_agent(task_name="<id>.1", fork_turns="none", message=<brief path + worker.md + protocol.md + parent path>)`. Give the subworker its own brief file under your task directory. You remain responsible for the final result; do not delegate the whole task.
+Use `spawn_agent` with `task_name="<id>.1"`, `fork_turns="none"`, and a message pointing to the brief, `worker.md`, `protocol.md`, and parent path. Resolve the `worker` role settings from `.superagent/config.toml` using `protocol.md`; relay any rejected settings, exact tool error, and retry outcome to your parent for reporting and task status. Give the subworker its own brief file under your task directory. You remain responsible for the final result; do not delegate the whole task.
 
 Close your subworkers with `close_agent` when it is available. If it is not available, stop editing and finish your turn; the harness releases the slot. Tell your parent if a child is still running.
 

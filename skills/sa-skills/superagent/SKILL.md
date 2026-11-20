@@ -26,7 +26,7 @@ You are the orchestrator. Your job is to turn one requested outcome into a small
    - `.superagent/config.toml`
    - `.superagent/STATE.md`
    - `.superagent/MEMORY.md`
-2. If `.superagent/` is missing, create it, write `.superagent/.gitignore` containing `*`, and initialize `STATE.md` and `MEMORY.md` using the schemas in `references/protocol.md`; create `config.toml` with the defaults in `references/protocol.md`.
+2. If `.superagent/` is missing, create it, write `.superagent/.gitignore` containing `*`, and initialize `STATE.md` and `MEMORY.md` using the schemas in `references/protocol.md`; initialize `config.toml` from `assets/config.toml`.
 3. Restate the request in one short message: outcome, acceptance criteria, non-goals, and the proposed split. This is the only progress message. Do not wait for approval unless the request is ambiguous or your split changes scope.
 4. Record the baseline in `STATE.md`: `git rev-parse HEAD` and `git status --porcelain` (metadata only). If this is not a git repo, record `baseline: none`.
 5. Write the plan and task briefs, then dispatch.
@@ -44,7 +44,7 @@ Read `references/protocol.md` for the exact schemas.
 ## Workflow
 
 1. **Plan.** Split by independent workstream, not by file count. Two or three top-level tasks is the default. Each task must have a single deliverable, a write set, and a checkable acceptance slice. If two tasks need the same file, serialize them or merge them.
-2. **Dispatch.** Spawn workers with `spawn_agent(task_name="t1", fork_turns="none", message=<brief pointer + role pointer + protocol pointer>)`. Every spawn must point to `.superagent/tasks/<id>/brief.md`; do not put the full task only in the spawn message. Keep at most `limits.max_active_subagents` (default 3) subagents active. Queue the rest.
+2. **Dispatch.** Use the `spawn_agent` parameters in `references/protocol.md` for each role, with `fork_turns="none"`. Every spawn must point to `.superagent/tasks/<id>/brief.md`; do not put the full task only in the spawn message. Keep at most `limits.max_active_subagents` (default 3) subagents active. Queue the rest.
 3. **Monitor.** Use `wait_agent` with long timeouts. On a message: answer `BLOCKED` if the answer is already in the brief or the user's request; otherwise ask the user one question with options. On `FINAL`: read the `report.md` header, close the agent when done, release its leases, and dispatch the next queued task.
 4. **Nest only when useful.** A worker may spawn a subworker if it has a bounded independent subtask and `list_agents` shows a free slot. Depth limit 3. A subworker's write set must be a subset of its parent worker's write set.
 5. **Verify.** After all implementation workers stop editing, spawn a verifier with `fork_turns="none"`, the acceptance criteria, the baseline, and the write sets. The verifier runs the acceptance checks and checks `git diff --name-only` for out-of-set edits. On FAIL, send the evidence to the owning worker and re-verify. Max 3 verifications.
@@ -56,7 +56,7 @@ Read `references/orchestrator.md` for the detailed playbook, `references/protoco
 
 - Worker silent past `time_budget_min` (default 30): ask for a concrete progress report. If there is real progress, grant one extension of `extension_min`; otherwise `interrupt_agent`, `close_agent`, record failed, and either re-dispatch once or report to the user.
 - Spawn fails because the slot limit is reached: queue it; do not retry in a loop. If `close_agent` is unavailable, wait for a completion before retrying.
-- Spawn fails because a configured model is unavailable: retry with `inherit` and record it in `STATE.md`.
+- If `spawn_agent` rejects a configured model or reasoning effort, follow "Failure and fallback" in `references/protocol.md`.
 - A worker reports `FAILED`: read its report, re-dispatch once with the failure evidence, then report to the user.
 - An approval or tool error the worker cannot resolve: report the exact error to the user; do not retry blindly.
 

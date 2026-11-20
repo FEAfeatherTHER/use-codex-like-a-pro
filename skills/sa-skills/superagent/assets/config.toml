@@ -1,8 +1,13 @@
 [models]
-# "inherit" means: do not pass model/reasoning_effort; the child uses the
-# parent's current model and effort. Only works with fork_turns = "none".
+# Omit model for a missing role or "inherit".
 worker = "inherit"
 explorer = "gpt-6-luna"
+verifier = "inherit"
+
+# Omit reasoning_effort for a missing role or "inherit", independently of model.
+[reasoning_effort]
+worker = "inherit"
+explorer = "inherit"
 verifier = "inherit"
 
 [limits]
